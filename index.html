@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Салон — Онлайн запис для майстра</title>
+  <style>
+    :root{
+      --bg:#0f1216;
+      --panel:#151a20;
+      --panel-2:#1b222b;
+      --text:#e8edf2;
+      --muted:#a5b1bf;
+      --accent:#6aa9ff;
+      --accent-2:#7ee787;
+      --danger:#ff7b7b;
+      --warn:#ffd36a;
+      --ok:#7ee787;
+      --border: #2a3441;
+      --input:#0e1116;
+      --shadow: 0 6px 24px rgba(0,0,0,.35);
+      --radius: 14px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color:var(--text);
+      background: radial-gradient(1200px 800px at 100% 0%, rgba(102,153,255,.08), transparent 60%),
+                  radial-gradient(900px 600px at 0% 100%, rgba(126,231,135,.06), transparent 60%),
+                  var(--bg);
+      letter-spacing:.2px;
+    }
+    header{
+      position:sticky; top:0; z-index:10;
+      background: rgba(15,18,22,.7);
+      backdrop-filter: saturate(1.2) blur(8px);
+      border-bottom:1px solid var(--border);
+    }
+    .wrap{
+      max-width:1100px; margin:0 auto; padding:16px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      font-weight:700; font-size:18px;
+    }
+    .brand .logo{
+      width:28px; height:28px; border-radius:8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 6px 18px rgba(106,169,255,.35);
+    }
+    .topbar{
+      display:flex; flex-wrap:wrap; align-items:center; gap:12px; justify-content:space-between;
+    }
+    .controls{ display:flex; flex-wrap:wrap; gap:10px; align-items:center }
+    .controls input, .controls select, .controls button{
+      background: var(--panel);
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:14px;
+      outline:none;
+    }
+    .controls button{
+      background: linear-gradient(180deg, var(--panel-2), var(--panel));
+      cursor:pointer;
+      transition: .2s transform ease, .2s box-shadow ease;
+      box-shadow: var(--shadow);
+      border:1px solid #2a344180;
+    }
+    .controls button:hover{ transform: translateY(-1px) }
+    .controls button:active{ transform: translateY(0) scale(.99) }
+    .pill{
+      padding:8px 12px; background:var(--panel-2); border:1px solid var(--border); border-radius:999px; color:var(--muted); font-size:13px;
+    }
+    .grid{
+      margin:18px auto; max-width:1100px;
+      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)) , var(--panel);
+      border:1px solid var(--border); border-radius: var(--radius);
+      overflow:hidden;
+      box-shadow: var(--shadow);
+    }
+    table{ width:100%; border-collapse: collapse; }
+    thead th{
+      position:sticky; top:66px; z-index:5;
+      background: var(--panel-2);
+      border-bottom:1px solid var(--border);
+      text-align:left;
+      padding:12px;
+      font-size:13px; color:var(--muted);
+    }
+    tbody td{
+      border-top:1px dashed #2a344180;
+      padding:8px 10px; vertical-align:middle;
+    }
+    tbody tr:hover{ background: #141a21 }
+    .timecell{ font-feature-settings:"tnum"; font-variant-numeric: tabular-nums; color:#c7d2df }
+    .input, select, textarea{
+      width:100%; background: var(--input); color:var(--text); border:1px solid #2a344180;
+      border-radius:10px; padding:8px 10px; font-size:14px;
+    }
+    textarea{ resize:vertical; min-height:36px; }
+    .status-badge{
+      display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:6px 10px;
+      border-radius:999px; border:1px solid var(--border); background:var(--panel-2); color:var(--muted);
+    }
+    .status-confirmed{ border-color:#2f7d38a0; color:#a6efb1; }
+    .status-pending{ border-color:#a07c2aa0; color:#ffe29a; }
+    .status-cancelled{ border-color:#8f2f2fa0; color:#ffb3b3; }
+    .row-actions{
+      display:flex; gap:8px; flex-wrap:wrap;
+    }
+    .row-actions button{
+      padding:6px 10px; border-radius:10px; font-size:12px;
+    }
+    .login-card{
+      max-width:420px; margin:80px auto; padding:24px; background: var(--panel);
+      border:1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .login-card h1{ margin:0 0 8px 0; font-size:22px }
+    .hint{ color:var(--muted); font-size:13px }
+    .footer{ color:var(--muted); font-size:12px; text-align:center; margin:24px 0 40px }
+    .chip{
+      display:inline-flex; align-items:center; gap:6px; padding:6px 10px; background: var(--panel-2); border:1px solid var(--border); border-radius:999px; color:var(--muted); font-size:12px;
+    }
+    .hidden{ display:none !important }
+    @media (max-width: 700px){
+      thead th:nth-child(5), tbody td:nth-child(5){ display:none } /* Примітка */
+      .topbar{ gap:10px }
+      header .wrap{ padding:12px 12px }
+      .wrap{ padding:12px }
+    }
+  </style>
+</head>
+<body>
+  <header class="hidden" id="appHeader">
+    <div class="wrap topbar">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>Онлайн запис • <span id="brandUser"></span></div>
+      </div>
+      <div class="controls">
+        <label class="pill">Дата <input type="date" id="datePicker"></label>
+        <select id="slotStep">
+          <option value="30">Крок 30 хв</option>
+          <option value="60">Крок 60 хв</option>
+          <option value="15">Крок 15 хв</option>
+        </select>
+        <select id="openHours">
+          <option value="09-19">Графік 09:00–19:00</option>
+          <option value="08-20">08:00–20:00</option>
+          <option value="10-18">10:00–18:00</option>
+        </select>
+        <button id="exportBtn">Експорт CSV</button>
+        <button id="clearDayBtn" title="Очистити всі записи за день">Очистити день</button>
+        <button id="logoutBtn">Вийти</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="loginView" class="login-card">
+    <h1>Вхід для майстра</h1>
+    <p class="hint">Це внутрішній інструмент для салону краси. Дані зберігаються локально у браузері. Для реального використання потрібен сервер.</p>
+    <div style="display:grid; gap:10px; margin-top:12px">
+      <label>Логін
+        <input id="login" class="input" placeholder="наприклад: master1" autocomplete="username">
+      </label>
+      <label>Пароль
+        <input id="password" type="password" class="input" placeholder="пароль" autocomplete="current-password">
+      </label>
+      <button id="loginBtn">Увійти</button>
+      <div class="hint">Демо-облікові записи:
+        <span class="chip">master1 / letmein</span>
+        <span class="chip">nailpro / letmein</span>
+        <span class="chip">brows / letmein</span>
+      </div>
+    </div>
+  </main>
+
+  <main id="appView" class="hidden">
+    <div class="wrap">
+      <div class="grid">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:86px">Час</th>
+              <th>Клієнт</th>
+              <th style="width:200px">Процедура</th>
+              <th style="width:130px">Телефон</th>
+              <th>Примітка</th>
+              <th style="width:160px">Статус</th>
+              <th style="width:150px">Дії</th>
+            </tr>
+          </thead>
+          <tbody id="slotsBody">
+          </tbody>
+        </table>
+      </div>
+      <div class="footer">© Ваш салон • Локальна демо-версія. Для багатокористувацького доступу та безпечного входу потрібна серверна частина (наприклад, Node.js + SQLite).</div>
+    </div>
+  </main>
+
+<script>
+(function(){
+  // ===== Simple "auth" (demo only) =====
+  const DEMO_USERS = {
+    "master1": "letmein",
+    "nailpro": "letmein",
+    "brows": "letmein"
+  };
+  const $ = sel => document.querySelector(sel);
+  const appHeader = $("#appHeader");
+  const loginView = $("#loginView");
+  const appView = $("#appView");
+  const brandUser = $("#brandUser");
+  const datePicker = $("#datePicker");
+  const slotsBody = $("#slotsBody");
+  const logoutBtn = $("#logoutBtn");
+  const exportBtn = $("#exportBtn");
+  const clearDayBtn = $("#clearDayBtn");
+  const slotStep = $("#slotStep");
+  const openHours = $("#openHours");
+
+  // Procedures list (can be edited here)
+  const PROCEDURES = [
+    "Манікюр",
+    "Педикюр",
+    "Покриття гель-лаком",
+    "Нарощування нігтів",
+    "Брови — корекція",
+    "Брови — фарбування",
+    "Вії — ламінування",
+    "Вії — нарощування",
+    "Стрижка жіноча",
+    "Стрижка чоловіча",
+    "Укладка",
+    "Фарбування волосся"
+  ];
+
+  // Status options
+  const STATUS = ["Очікує", "Підтверджено", "Скасовано"];
+
+  // State
+  let currentUser = null;
+
+  // ===== Helpers =====
+  const todayISO = () => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0,10);
+  };
+
+  function storageKey(user, date){
+    return `salon:${user}:${date}:v1`;
+  }
+
+  function createSlotsForDay(stepMin, hoursRange){
+    const [startH, endH] = hoursRange.split("-").map(Number);
+    const slots = [];
+    for(let h = startH; h < endH; h++){
+      for(let m = 0; m < 60; m += stepMin){
+        const hh = String(h).padStart(2,"0");
+        const mm = String(m).padStart(2,"0");
+        slots.push({
+          time: `${hh}:${mm}`,
+          name: "",
+          phone: "",
+          note: "",
+          procedure: "",
+          status: "Очікує"
+        });
+      }
+    }
+    return slots;
+  }
+
+  function loadDay(user, date, stepMin, hoursRange){
+    const key = storageKey(user, date);
+    const raw = localStorage.getItem(key);
+    if(raw){
+      try{
+        const parsed = JSON.parse(raw);
+        // If settings changed (step/hours), regenerate but keep filled cells
+        const fresh = createSlotsForDay(stepMin, hoursRange);
+        const map = new Map(parsed.slots.map(s => [s.time, s]));
+        return { slots: fresh.map(s => map.get(s.time) || s), stepMin, hoursRange };
+      }catch(e){
+        console.error("Bad data", e);
+      }
+    }
+    return { slots: createSlotsForDay(stepMin, hoursRange), stepMin, hoursRange };
+  }
+
+  function saveDay(user, date, data){
+    localStorage.setItem(storageKey(user,date), JSON.stringify(data));
+  }
+
+  function render(slots){
+    slotsBody.innerHTML = "";
+    for(const s of slots){
+      const tr = document.createElement("tr");
+
+      const tdTime = document.createElement("td");
+      tdTime.textContent = s.time;
+      tdTime.className = "timecell";
+      tr.appendChild(tdTime);
+
+      const tdName = document.createElement("td");
+      const nameInput = document.createElement("input");
+      nameInput.className = "input";
+      nameInput.placeholder = "Ім'я клієнта";
+      nameInput.value = s.name || "";
+      nameInput.addEventListener("input", () => { s.name = nameInput.value; autosave(); });
+      tdName.appendChild(nameInput);
+      tr.appendChild(tdName);
+
+      const tdProc = document.createElement("td");
+      const procSel = document.createElement("select");
+      procSel.className = "input";
+      procSel.innerHTML = `<option value="">— Оберіть —</option>` + PROCEDURES.map(p => `<option value="${p}">${p}</option>`).join("");
+      procSel.value = s.procedure || "";
+      procSel.addEventListener("change", ()=>{ s.procedure = procSel.value; autosave(); });
+      tdProc.appendChild(procSel);
+      tr.appendChild(tdProc);
+
+      const tdPhone = document.createElement("td");
+      const phoneInput = document.createElement("input");
+      phoneInput.className = "input";
+      phoneInput.placeholder = "+380...";
+      phoneInput.inputMode = "tel";
+      phoneInput.value = s.phone || "";
+      phoneInput.addEventListener("input", ()=>{ s.phone = phoneInput.value; autosave(); });
+      tdPhone.appendChild(phoneInput);
+      tr.appendChild(tdPhone);
+
+      const tdNote = document.createElement("td");
+      const noteArea = document.createElement("textarea");
+      noteArea.placeholder = "Деталі, побажання…";
+      noteArea.value = s.note || "";
+      noteArea.addEventListener("input", ()=>{ s.note = noteArea.value; autosave(); });
+      tdNote.appendChild(noteArea);
+      tr.appendChild(tdNote);
+
+      const tdStatus = document.createElement("td");
+      const statusSel = document.createElement("select");
+      statusSel.className = "input";
+      statusSel.innerHTML = STATUS.map(st => `<option>${st}</option>`).join("");
+      statusSel.value = s.status || "Очікує";
+      statusSel.addEventListener("change", ()=>{ s.status = statusSel.value; autosave(); badgeUpdate(); });
+      const badge = document.createElement("span");
+      badge.className = "status-badge";
+      function badgeUpdate(){
+        badge.className = "status-badge";
+        if(statusSel.value === "Підтверджено") badge.classList.add("status-confirmed");
+        else if(statusSel.value === "Скасовано") badge.classList.add("status-cancelled");
+        else badge.classList.add("status-pending");
+        badge.textContent = statusSel.value;
+      }
+      badgeUpdate();
+      tdStatus.appendChild(statusSel);
+      tdStatus.appendChild(document.createTextNode(" "));
+      tdStatus.appendChild(badge);
+      tr.appendChild(tdStatus);
+
+      const tdActions = document.createElement("td");
+      tdActions.className = "row-actions";
+      const btnClear = document.createElement("button");
+      btnClear.textContent = "Очистити";
+      btnClear.addEventListener("click", ()=>{
+        nameInput.value = s.name = "";
+        procSel.value = s.procedure = "";
+        phoneInput.value = s.phone = "";
+        noteArea.value = s.note = "";
+        statusSel.value = s.status = "Очікує"; badgeUpdate();
+        autosave();
+      });
+      const btnDup = document.createElement("button");
+      btnDup.textContent = "Дублювати ↓";
+      btnDup.addEventListener("click", ()=>{
+        const idx = Array.from(slotsBody.children).indexOf(tr);
+        if(idx+1 < slots.length){
+          const next = slots[idx+1];
+          next.name = s.name;
+          next.procedure = s.procedure;
+          next.phone = s.phone;
+          next.note = s.note;
+          next.status = s.status;
+          render(slots); // re-render to reflect
+          autosave();
+        }
+      });
+      tdActions.appendChild(btnClear);
+      tdActions.appendChild(btnDup);
+      tr.appendChild(tdActions);
+
+      slotsBody.appendChild(tr);
+    }
+  }
+
+  // ===== App init & events =====
+  let currentDayData = null;
+
+  function initDay(){
+    const step = parseInt(slotStep.value,10);
+    const hours = openHours.value;
+    currentDayData = loadDay(currentUser, datePicker.value, step, hours);
+    render(currentDayData.slots);
+    appHeader.classList.remove("hidden");
+  }
+
+  function autosave(){
+    if(!currentUser) return;
+    saveDay(currentUser, datePicker.value, {
+      slots: currentDayData.slots,
+      stepMin: parseInt(slotStep.value,10),
+      hoursRange: openHours.value
+    });
+  }
+
+  function exportCSV(){
+    const rows = [["Час","Клієнт","Процедура","Телефон","Примітка","Статус"]];
+    for(const s of currentDayData.slots){
+      if((s.name||s.procedure||s.phone||s.note||"").trim() === "" && s.status==="Очікує") continue; // skip empty
+      rows.push([s.time, s.name, s.procedure, s.phone, s.note, s.status]);
+    }
+    const csv = rows.map(r => r.map(x => `"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `schedule_${currentUser}_${datePicker.value}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  }
+
+  // Login flow
+  $("#loginBtn").addEventListener("click", tryLogin);
+  $("#password").addEventListener("keydown", e => { if(e.key==="Enter") tryLogin() });
+
+  function tryLogin(){
+    const u = $("#login").value.trim();
+    const p = $("#password").value;
+    if(!u || !p){ alert("Введіть логін і пароль"); return; }
+    if(!(u in DEMO_USERS) || DEMO_USERS[u] !== p){
+      alert("Невірний логін або пароль (демо: master1 / letmein)"); return;
+    }
+    currentUser = u;
+    brandUser.textContent = u;
+    loginView.classList.add("hidden");
+    appView.classList.remove("hidden");
+    datePicker.value = todayISO();
+    initDay();
+  }
+
+  // Header actions
+  logoutBtn.addEventListener("click", ()=>{
+    currentUser = null;
+    appHeader.classList.add("hidden");
+    appView.classList.add("hidden");
+    loginView.classList.remove("hidden");
+    $("#password").value = "";
+  });
+
+  exportBtn.addEventListener("click", exportCSV);
+
+  clearDayBtn.addEventListener("click", ()=>{
+    if(!confirm("Очистити всі записи цього дня? Це не можна скасувати.")) return;
+    currentDayData.slots = createSlotsForDay(parseInt(slotStep.value,10), openHours.value);
+    render(currentDayData.slots);
+    autosave();
+  });
+
+  datePicker.addEventListener("change", ()=>{
+    initDay();
+  });
+  slotStep.addEventListener("change", ()=>{
+    initDay(); autosave();
+  });
+  openHours.addEventListener("change", ()=>{
+    initDay(); autosave();
+  });
+
+  // If there's a saved session (optional enhancement)
+  // For demo, we don't auto-restore user for safety.
+})();
+</script>
+</body>
+</html>
